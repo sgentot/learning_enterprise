@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\CmEnterprise;
 use Illuminate\Http\Resources\Json\JsonResource;
 
  
@@ -20,7 +21,7 @@ class CmCustomerResource extends JsonResource
         'customerstate' => $this->customerstate,
         'contact' => $this->contact,
         'sale' => $this->sale,
-        'identerprise' => $this->identerprise,
+        'identerprise' => new CmEnterpriseResource(CmEnterprise::find($this->identerprise)),
         'paymentmethod' => $this->paymentmethod,
         'elanguage' => $this->elanguage,
         'currency' => $this->currency,

@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CmCustomerResource;
 use Illuminate\Http\Request;
+use App\Models\CmCustomer;
 use App\Models\CmEnterprise;
-use App\Http\Resources\CmEnterpriseResource;
 use Validator;
 
 
-class CmEnterpriseController extends Controller
+class CmCustomerController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -19,11 +20,11 @@ class CmEnterpriseController extends Controller
     public function index()
     {
         //
-        $enterprises = CmEnterprise::all();
-        $message = 'Empresas obtenidos correctamente';
+        $customers = CmCustomer::all();
+        $message = 'Clientes obtenidos correctamente';
         $response = [
             'success' => true,
-            'data'    => CmEnterpriseResource::collection($enterprises),
+            'data'    => CmCustomerResource::collection($customers),
             'message' => $message,
         ];
         return response()->json($response, 200);
@@ -38,28 +39,39 @@ class CmEnterpriseController extends Controller
     public function store(Request $request)
     {
         //
-        $inputEnterprise = $request->all();
-        $validator = Validator::make($inputEnterprise, [
-          'enterprise' => ['required', 'unique:cm_enterprise', 'max:255'],
-          'description' => ['required'],
-          'contact' => ['required', 'max:25'],
+        $inputCustomer = $request->all();
+ 
+        $validator = Validator::make($inputCustomer, [
+            'customer' => ['required', 'unique:cm_customer', 'max:255'],
+            'contact' => ['required', 'max:15'],
+            'identerprise' => ['required'],
         ]);
         if($validator->fails()){
-          $response = [
-            'success' => false,
-            'message' => 'Validation Error.'
-          ];
-          if(!empty($validator->errors())){
-            $response['data'] = $validator->errors();
-          }
-          return response()->json($response, 404);
+            $response = [
+                'success' => false,
+                'message' => 'Validation Error.'
+            ];
+            if(!empty($validator->errors())){
+                $response['data'] = $validator->errors();
+            }
+            return response()->json($response, 404);
         }
-        $enterprise = CmEnterprise::create($inputEnterprise);
-        $message = 'Empresa creada correctamente.';
+        $enterprise = CmEnterprise::find($inputCustomer['identerprise']);
+        if (!isset($enterprise)) {
+            $response = [
+                'success' => false,
+                'message' => 'Enterprise not exists.'
+            ];
+            return response()->json($response, 404);
+        }
+     
+        $customer = CmCustomer::create($inputCustomer);
+     
+        $message = 'Cliente creado correctamente.';
         $response = [
-          'success' => true,
-          'data'    => new CmEnterpriseResource($enterprise),
-          'message' => $message,
+            'success' => true,
+            'data'    => new CmCustomerResource($customer),
+            'message' => $message,
         ];
         return response()->json($response, 201);
     }
@@ -73,22 +85,22 @@ class CmEnterpriseController extends Controller
     public function show($id)
     {
         //
-        $enterprise = CmEnterprise::find($id);
-        if (is_null($enterprise)) {
-            return response()->json(
-                        $response = [
-                        'success' => false,
-                        'message' => 'No se ha encontrado la empresa.'
-                        ],
-                        404);
-        }
-        $message = 'Empresa encontrada.';
-        $response = [
-            'success' => true,
-            'data'    => new CmEnterpriseResource($enterprise),
-            'message' => $message,
-        ];
-        return response()->json($response, 200);
+        $customer = CmCustomer::find($id);
+    if (is_null($customer)) {
+        return response()->json(
+            $response = [
+                    'success' => false,
+                    'message' => 'No se ha encontrado el cliente.'
+                ],
+                404);
+    }
+    $message = 'Cliente encontrado.';
+    $response = [
+        'success' => true,
+        'data'    => new CmCustomerResource($customer),
+        'message' => $message,
+    ];
+    return response()->json($response, 200);
     }
 
     /**
@@ -101,46 +113,48 @@ class CmEnterpriseController extends Controller
     public function update(Request $request, $id)
     {
         //
-        $enterprise = CmEnterprise::find($id);
-    if (is_null($enterprise)) {
+        $customer = CmCustomer::find($id);
+    if (is_null($customer)) {
         return response()->json(
         $response = [
-        'success' => false,
-        'message' => 'Empresa no encontrado.'
-        ],
-        404);
+                'success' => false,
+                'message' => 'Cliente no encontrado.'
+            ],
+            404);
     } else {
-        $inputEnterprise = $request->all();
-        $validator = Validator::make($inputEnterprise, [
-        'enterprise' => ['required', 'unique:cm_enterprise', 'max:255'],
-        'description' => ['required'],
-        'contact' => ['required', 'max:25'],
+        $inputCustomer = $request->all();
+        $validator = Validator::make($inputCustomer, [
+            'customer' =>  ['required', Rule::unique('cm_customer')->ignore($customer)],
+            'contact' => ['required', 'max:250'],
+            'identerprise' => ['required'],
         ]);
-        if($validator->fails()){
-        $response = [
-            'success' => false,
-            'dataIn' => $inputEnterprise,
-            'id-pasado' =>$id,
-            'message' => 'Validation Error.'
-        ];
-        if(!empty($validator->errors())){
-            $response['data'] = $validator->errors();
+        if($validator->fails()) {
+            $response = [
+                'success' => false,
+                'dataIn' => $inputCustomer,
+                'id-pasado' =>$id,
+                'message' => 'Validation Error.'
+            ];
+            if(!empty($validator->errors())){
+                $response['data'] = $validator->errors();
+            }
+            return response()->json($response, 404);
         }
-        return response()->json($response, 404);
-        }
-        $enterprise->enterprise = $request->input('enterprise');
-        $enterprise->description = $request->input('description');
-        $enterprise->contact = $request->input('contact');
-        $enterprise->estate = $request->input('estate');
-        $enterprise->elanguage = $request->input('elanguage');
-        $enterprise->country = $request->input('country');
-        $enterprise->currency = $request->input('currency');
-        $enterprise->save();
-        $message = 'Empresa actualizada.';
+        $customer->identerprise = $request->input('identerprise');
+        $customer->customer = $request->input('customer');
+        $customer->contact = $request->input('contact');
+        $customer->customerstate = $request->input('customerstate');
+        $customer->paymentmethod = $request->input('paymentmethod');
+        $customer->elanguage = $request->input('elanguage');
+        $customer->country = $request->input('country');
+        $customer->currency = $request->input('currency');
+        $customer->address = $request->input('address');
+        $customer->save();
+        $message = 'Cliente actualizado.';
         $response = [
-        'success' => true,
-        'data'    => new CmEnterpriseResource($enterprise),
-        'message' => $message,
+            'success' => true,
+            'data'    => new CmCustomerResource($customer),
+            'message' => $message,
         ];
         return response()->json($response, 200);
     }
@@ -152,36 +166,17 @@ class CmEnterpriseController extends Controller
          * @param  int  $id
          * @return \Illuminate\Http\Response
          */
-        public function destroy($id)
+        public function destroy($idcustomer)
         {
             //
-            $enterprise = CmEnterprise::find($id);
-            if (is_null($enterprise)) {
-                return response()->json(
-                    $response = [
-                        'success' => false,
-                        'message' => 'Empresa no encontrada para eliminar.'
-                    ],
-                    404);
-            } else {
-                $lenterprise = $enterprise->enterprise;
-                  
-                $numCustomers = 0;
-                // Necesitamos comprobar la integridad del borrado, si se utiliza en clientes no se puede borrar.
-                if ($numCustomers > 0) {
-                    return response()->json(
-                        $response = [
-                            'success' => false,
-                            'message' => 'La empresa '.$lenterprise.' no se puede borrar porque está siendo utilizado en clientes',
-                        ], 304);
-                } else {
-                    $enterprise->delete();
-                    $response = [
-                        'success' => true,
-                        'message' => 'La empresa '.$lenterprise.' se ha borrado correctamente',
-                    ];
-                    return response()->json($response, 204);
-                }
-            }
+            $customer = CmCustomer::find($idcustomer);
+            $lcustomer = $customer->customer; 
+            // No podremos borrar el cliente si tiene pedidos asignados (lo veremos en el futuro)
+            $customer->delete(); 
+            $response = [
+              'success' => true,
+              'message' => 'El cliente '.$lcustomer.' se ha borrado correctamente',
+            ];
+            return response()->json($response, 200);
         }
 }

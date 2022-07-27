@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\CmEnterpriseController;
+use App\Http\Controllers\API\CmCustomerController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -21,3 +23,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 //Añadimos el acceso a todas las rutas estándar CRUD
 Route::resource('enterprises', CmEnterpriseController::class);
+Route::resource('customers', CmCustomerController::class);

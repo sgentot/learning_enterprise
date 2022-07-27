@@ -7,6 +7,7 @@ use App\Http\Resources\CmCustomerResource;
 use Illuminate\Http\Request;
 use App\Models\CmCustomer;
 use App\Models\CmEnterprise;
+use Illuminate\Validation\Rule;
 use Validator;
 
 
@@ -51,7 +52,7 @@ class CmCustomerController extends Controller
                 'success' => false,
                 'message' => 'Validation Error.'
             ];
-            if(!empty($validator->errors())){
+            if(count($validator->errors()) !== 0){
                 $response['data'] = $validator->errors();
             }
             return response()->json($response, 404);
@@ -135,7 +136,7 @@ class CmCustomerController extends Controller
                 'id-pasado' =>$id,
                 'message' => 'Validation Error.'
             ];
-            if(!empty($validator->errors())){
+            if(count($validator->errors()) !== 0){
                 $response['data'] = $validator->errors();
             }
             return response()->json($response, 404);
@@ -170,6 +171,7 @@ class CmCustomerController extends Controller
         {
             //
             $customer = CmCustomer::find($idcustomer);
+            if ($customer !== null) {
             $lcustomer = $customer->customer; 
             // No podremos borrar el cliente si tiene pedidos asignados (lo veremos en el futuro)
             $customer->delete(); 
@@ -178,5 +180,13 @@ class CmCustomerController extends Controller
               'message' => 'El cliente '.$lcustomer.' se ha borrado correctamente',
             ];
             return response()->json($response, 200);
+            } else {
+                return response()->json(
+                    $response = [
+                        'success' => false,
+                        'message' => 'No se ha encontrado el cliente con  id:'.$idcustomer.' que se quería eliminar'
+                    ],
+                    404);
+            }
         }
 }

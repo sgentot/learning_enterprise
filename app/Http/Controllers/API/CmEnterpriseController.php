@@ -49,7 +49,7 @@ class CmEnterpriseController extends Controller
             'success' => false,
             'message' => 'Validation Error.'
           ];
-          if(!empty($validator->errors())){
+          if(count($validator->errors()) !== 0){
             $response['data'] = $validator->errors();
           }
           return response()->json($response, 404);
@@ -102,49 +102,49 @@ class CmEnterpriseController extends Controller
     {
         //
         $enterprise = CmEnterprise::find($id);
-    if (is_null($enterprise)) {
-        return response()->json(
-        $response = [
-        'success' => false,
-        'message' => 'Empresa no encontrado.'
-        ],
-        404);
-    } else {
-        $inputEnterprise = $request->all();
-        $validator = Validator::make($inputEnterprise, [
-        'enterprise' => ['required', 'unique:cm_enterprise', 'max:255'],
-        'description' => ['required'],
-        'contact' => ['required', 'max:25'],
-        ]);
-        if($validator->fails()){
-        $response = [
+        if (is_null($enterprise)) {
+            return response()->json(
+            $response = [
             'success' => false,
-            'dataIn' => $inputEnterprise,
-            'id-pasado' =>$id,
-            'message' => 'Validation Error.'
-        ];
-        if(!empty($validator->errors())){
-            $response['data'] = $validator->errors();
+            'message' => 'Empresa no encontrado.'
+            ],
+            404);
+        } else {
+            $inputEnterprise = $request->all();
+            $validator = Validator::make($inputEnterprise, [
+            'enterprise' => ['required', 'unique:cm_enterprise', 'max:255'],
+            'description' => ['required'],
+            'contact' => ['required', 'max:25'],
+            ]);
+            if($validator->fails()){
+            $response = [
+                'success' => false,
+                'dataIn' => $inputEnterprise,
+                'id-pasado' =>$id,
+                'message' => 'Validation Error.'
+            ];
+            if(count($validator->errors()) !== 0){
+                $response['data'] = $validator->errors();
+            }
+            return response()->json($response, 404);
+            }
+            $enterprise->enterprise = $request->input('enterprise');
+            $enterprise->description = $request->input('description');
+            $enterprise->contact = $request->input('contact');
+            $enterprise->estate = $request->input('estate');
+            $enterprise->elanguage = $request->input('elanguage');
+            $enterprise->country = $request->input('country');
+            $enterprise->currency = $request->input('currency');
+            $enterprise->save();
+            $message = 'Empresa actualizada.';
+            $response = [
+            'success' => true,
+            'data'    => new CmEnterpriseResource($enterprise),
+            'message' => $message,
+            ];
+            return response()->json($response, 200);
         }
-        return response()->json($response, 404);
-        }
-        $enterprise->enterprise = $request->input('enterprise');
-        $enterprise->description = $request->input('description');
-        $enterprise->contact = $request->input('contact');
-        $enterprise->estate = $request->input('estate');
-        $enterprise->elanguage = $request->input('elanguage');
-        $enterprise->country = $request->input('country');
-        $enterprise->currency = $request->input('currency');
-        $enterprise->save();
-        $message = 'Empresa actualizada.';
-        $response = [
-        'success' => true,
-        'data'    => new CmEnterpriseResource($enterprise),
-        'message' => $message,
-        ];
-        return response()->json($response, 200);
     }
-        }
 
         /**
          * Remove the specified resource from storage.
